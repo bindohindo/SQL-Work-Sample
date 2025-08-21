@@ -1,5 +1,3 @@
-DROP TABLE IF EXISTS player_stats;
-
 CREATE TABLE player_stats AS
     WITH player_info AS (
         SELECT

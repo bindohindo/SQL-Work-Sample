@@ -24,15 +24,16 @@
     ORDER BY player_name, tournament_name
     LIMIT 10;
 
-# 2a) which player(s) reached n tournament wins first? --------------------------------------------
-    # player_name        | target_date
-    # Andrey Rublev      | 20201026
-    # Novak Djokovic     | 20210524
-    # Daniil Medvedev    | 20210621
+# 2a) which player(s) reached n tournament wins? -------------------------------------------------
+    # player_name        | wins | date
+    # Andrey Rublev      | 5    | 20201026
+    # Novak Djokovic     | 5    | 20210524
+    # Daniil Medvedev    | 5    | 20210621
 
     SELECT
         winner_name AS player_name,
-        MIN(tourney_date) AS target_date
+        total_wins AS wins,
+        MIN(tourney_date) AS date
     FROM
         (SELECT
              winner_id, winner_name, tourney_date,
@@ -40,21 +41,22 @@
         FROM tournament_stats) AS sub
     WHERE total_wins = 5 # define n here
     GROUP BY player_name
-    ORDER BY target_date
+    ORDER BY date
     LIMIT 3;
 
-# 2b) which player(s) reached the highest number of tournament wins first? ------------------------
-    # player_name        | target_date
-    # Daniil Medvedev    | 20231023
-    # Novak Djokovic     | 20231113
-    # Andrey Rublev      | 20240422
+# 2b) which player(s) reached the highest number of tournament wins? -----------------------------
+    # player_name        | wins | date
+    # Daniil Medvedev    | 14   | 20231023
+    # Novak Djokovic     | 14   | 20231113
+    # Andrey Rublev      | 14   | 20240422
 
     SELECT MAX(total_wins) INTO @max
     FROM total_tournament_wins;
 
     SELECT
         winner_name AS player_name,
-        MIN(tourney_date) AS target_date
+        @max AS wins,
+        MIN(tourney_date) AS date
     FROM
         (SELECT
              winner_id, winner_name, tourney_date,
@@ -62,9 +64,9 @@
         FROM tournament_stats) AS sub
     WHERE total_wins = @max
     GROUP BY player_name
-    ORDER BY target_date;
+    ORDER BY date;
 
-# 3) would you recommend players be taller to win more? -------------------------------------------
+# 3) would you recommend players be taller to win more? ------------------------------------------
     # no, there is no meaningful (linear) relationship between player height and total wins;
     # the pearson correlation coefficient ≈ 0.15
 
@@ -74,7 +76,7 @@
         ROUND(AVG(wins), 2) AS avg_wins,
         COUNT(*) AS num_players
     FROM player_stats
-    WHERE player_height IS NOT NULL && player_height > 100 # filter out (implausible on ATP tour)
+    WHERE player_height IS NOT NULL && player_height > 100 # filter anomalies
     GROUP BY height_bucket
     ORDER BY height_bucket;
 
@@ -102,7 +104,8 @@
     SELECT
         SUM((player_height - avg_height) * (wins - avg_wins)) / # covariance
         (SQRT(SUM(POWER(player_height - avg_height, 2))) * # stddev, player_height
-         SQRT(SUM(POWER(wins - avg_wins, 2)))) AS correlation # stddev, wins
+         SQRT(SUM(POWER(wins - avg_wins, 2)))) # stddev, wins
+            AS correlation
     FROM stats;
 
     # coefficient ≈ 0.15

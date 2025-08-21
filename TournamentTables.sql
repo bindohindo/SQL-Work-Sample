@@ -1,5 +1,3 @@
-DROP TABLE IF EXISTS all_tournaments_raw;
-
 CREATE TABLE all_tournaments_raw AS (
     SELECT
         tourney_id,
@@ -16,8 +14,6 @@ CREATE TABLE all_tournaments_raw AS (
     ORDER BY tourney_name ASC, tourney_id ASC,match_num DESC
 );
 
-DROP TABLE IF EXISTS tournament_stats;
-
 CREATE TABLE tournament_stats AS (
     SELECT
         tourney_id,
@@ -33,8 +29,6 @@ CREATE TABLE tournament_stats AS (
     WHERE match_num = 300
     ORDER BY tourney_name
 );
-
-DROP TABLE IF EXISTS total_tournament_wins;
 
 CREATE TABLE total_tournament_wins AS (
     SELECT
